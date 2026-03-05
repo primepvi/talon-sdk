@@ -1,13 +1,25 @@
 {
-	"name": "@talon/sdk",
-	"version": "1.0.0",
+	"name": "@talonjs/sdk",
+	"version": "1.0.2",
 	"description": "",
-	"main": "index.js",
 	"type": "module",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"import": "./dist/index.js",
+			"types": "./dist/index.d.ts"
+		}
+	},
+	"files": [
+		"dist"
+	],
 	"scripts": {
 		"dev": "tsx src/index.ts",
 		"dev:e": "tsx example/index.ts",
-		"format": "biome format --write"
+		"format": "biome format --write",
+		"build": "tsup",
+		"prepublishOnly": "npm run build"
 	},
 	"keywords": [],
 	"author": "",
@@ -17,6 +29,7 @@
 		"@biomejs/biome": "2.4.4",
 		"@types/node": "^25.3.0",
 		"@types/ws": "^8.18.1",
+		"tsup": "^8.5.1",
 		"tsx": "^4.21.0",
 		"typescript": "^5.9.3"
 	},

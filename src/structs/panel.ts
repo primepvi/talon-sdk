@@ -17,16 +17,12 @@ export class Panel extends EventEmitter<PanelEvents> {
 
 	public listen(port: number): void {
 		this.socket = new WebSocketServer({ port });
-
-		this.socket.on("error", (err) => this.emit("error", err));
-		this.socket.on("connection", (connection, request) => {
-			this.handleConnection(connection, request.headers.authorization);
-		});
+		this.setupSocket();
 	}
 
 	public attach(server: Server, path: string) {
 		this.socket = new WebSocketServer({ noServer: true });
-		this.socket.on("error", (err) => this.emit("error", err));
+		this.setupSocket();
 
 		server.on("upgrade", (request, socket, head) => {
 			if (path && request.url !== path) return; 
@@ -34,6 +30,13 @@ export class Panel extends EventEmitter<PanelEvents> {
 			this.socket.handleUpgrade(request, socket, head, (ws) => {
 				this.socket.emit("connection", ws, request);
 			});
+		});
+	}
+
+	private setupSocket() {
+		this.socket.on("error", (err) => this.emit("error", err));
+		this.socket.on("connection", (connection, request) => {
+			this.handleConnection(connection, request.headers.authorization);
 		});
 	}
 
