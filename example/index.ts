@@ -10,24 +10,22 @@ panel.listen();
 
 const node = await panel.waitForNode("banana");
 
-const app = await node.createApp({
-	app_id: randomUUID(),
-	name: "panel-test-app",
-	strategy: "dockerfile",
-	repo: "https://github.com/primepvi/test",
-	commit: "HEAD",
-	resources: { cpu: 1.0, memory: 512 },
-	env: { PORT: "3000" },
+const [app, ...rest] = await node.sync({
+	apps: [
+		{
+			app_id: "e20aaca2-6fef-4a0c-a016-21b9303de69d",
+			name: "carlos",
+			strategy: "dockerfile",
+			repo: "https://github.com/primepvi/test",
+			commit: "HEAD",
+			resources: { cpu: 1.0, memory: 512 },
+			env: { PORT: "3000" },
+		},
+	],
 });
 
-await app.deploy(randomUUID());
-await app.redeploy({
-	deploy_id: randomUUID(),
-	changes: ["name"],
-	name: "carlos"
-})
+console.log(rest);
 
-await app.stop();
-await app.destroy();
+await app.start();
 
-console.log("Finalized");
+console.log("Started")

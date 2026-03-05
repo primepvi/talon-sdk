@@ -7,11 +7,15 @@ import type {
 	AppStartPayload,
 	AppStatePayload,
 	AppStopPayload,
+	NodeReadyPayload,
 	NodeRegisterPayload,
+	NodeSyncPayload,
 } from "./payloads";
 
 export type MessageKind =
 	| "node.register"
+	| "node.sync"
+	| "node.ready"
 	| "app.create"
 	| "app.deploy"
 	| "app.redeploy"
@@ -65,6 +69,16 @@ export interface AppDestroyMessage extends BaseMessage {
 export interface NodeRegisterMessage extends BaseMessage {
 	type: "node.register";
 	payload: NodeRegisterPayload;
+}
+
+export interface NodeSyncMessage extends BaseMessage {
+	type: "node.sync";
+	payload: NodeSyncPayload;
+}
+
+export interface NodeReadyMessage extends BaseMessage {
+	type: "node.ready";
+	payload: NodeReadyPayload;
 }
 
 export interface AckMessage extends BaseMessage {

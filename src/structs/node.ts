@@ -11,6 +11,8 @@ import type {
 	AppStopMessage,
 	AppDestroyMessage,
 	AppRedeployMessage,
+	NodeSyncMessage,
+	NodeReadyMessage,
 } from "@/types/messages";
 
 import type {
@@ -22,6 +24,8 @@ import type {
 	AppStartPayload,
 	AppStatePayload,
 	AppStopPayload,
+	NodeReadyPayload,
+	NodeSyncPayload,
 } from "@/types/payloads";
 
 import type { NodeEvents, NodeMessageResolver } from "@/types/node";
@@ -52,6 +56,16 @@ export class Node extends EventEmitter<NodeEvents> {
 		this.connection.on("error", (err) => this.emit("error", err));
 	}
 
+	public async sync(payload: NodeSyncPayload): Promise<App[]> {
+		try {
+			const result = await this.handleNodeSync(payload);
+			return result.apps.map(p => new App(p.app_id, this))
+		} catch (err) {
+			console.log(err)
+			return [];
+		}
+	}
+
 	public async createApp(payload: AppCreatePayload): Promise<App> {
 		const result = await this.handleAppCreate(payload);
 
@@ -62,6 +76,24 @@ export class Node extends EventEmitter<NodeEvents> {
 		}
 
 		return new App(payload.app_id, this);
+	}
+
+	public async handleNodeSync(payload: NodeSyncPayload): Promise<NodeReadyPayload> {
+		const correlationId = randomUUID();
+
+		await this.request<void, NodeSyncMessage>(
+			{
+				type: "node.sync",
+				correlation_id: correlationId,
+				payload
+			},
+			ackHandler
+		)
+
+		return this.waitFor<NodeReadyPayload>(correlationId, (message) => {
+			const { payload } = message as NodeReadyMessage;
+			return payload;
+		})
 	}
 
 	public async handleAppCreate(payload: AppCreatePayload): Promise<AckPayload> {

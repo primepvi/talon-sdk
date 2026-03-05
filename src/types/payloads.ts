@@ -3,6 +3,14 @@ export interface NodeRegisterPayload {
 	version: string;
 }
 
+export interface NodeSyncPayload {
+	apps: AppCreatePayload[]
+}
+
+export interface NodeReadyPayload {
+	apps: Array<{app_id: string, status: AppStatus}>
+}
+
 export type AppCreatePayload =
 	| RegistryAppCreatePayload
 	| DockerfileAppCreatePayload;
