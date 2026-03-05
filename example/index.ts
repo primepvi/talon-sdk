@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { Panel } from "@/structs/panel";
 
-const panel = Panel.create({
+const panel = new Panel({
 	port: 9000,
 	token: "banana",
 });

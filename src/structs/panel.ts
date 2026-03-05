@@ -1,37 +1,46 @@
 import { EventEmitter } from "node:events";
 import { Node } from "./node";
 import type { NodeRegisterMessage } from "@/types/messages";
-import type { PanelConfig, PanelEvents } from "@/types/panel";
+import type { PanelEvents } from "@/types/panel";
 import { WebSocketServer, type WebSocket } from "ws";
+import type { Server } from "node:http";
 
 export class Panel extends EventEmitter<PanelEvents> {
-	private token: string;
-	private socket: WebSocketServer;
+	private socket!: WebSocketServer;
 	private nodeEnsureResolvers = new Map<string, ((node: Node) => void)[]>();
 
 	public nodes = new Map<string, Node>();
 
-	public static create(config: PanelConfig) {
-		return new Panel(config);
+	public constructor(private token: string) {
+		super();
 	}
 
-	private constructor({ port, token }: PanelConfig) {
-		super();
-		this.token = token;
-		this.socket = new WebSocketServer({
-			port,
-		});
+	public listen(port: number): void {
+		this.socket = new WebSocketServer({ port });
 
 		this.socket.on("error", (err) => this.emit("error", err));
-	}
-
-	public listen(): void {
 		this.socket.on("connection", (connection, request) => {
 			this.handleConnection(connection, request.headers.authorization);
 		});
 	}
 
-	private handleConnection(connection: WebSocket, authorization?: string): void {
+	public attach(server: Server, path: string) {
+		this.socket = new WebSocketServer({ noServer: true });
+		this.socket.on("error", (err) => this.emit("error", err));
+
+		server.on("upgrade", (request, socket, head) => {
+			if (path && request.url !== path) return; 
+
+			this.socket.handleUpgrade(request, socket, head, (ws) => {
+				this.socket.emit("connection", ws, request);
+			});
+		});
+	}
+
+	private handleConnection(
+		connection: WebSocket,
+		authorization?: string,
+	): void {
 		if (authorization !== `Bearer ${this.token}`) {
 			connection.close(1008, "Unauthorized.");
 			return;
@@ -45,7 +54,7 @@ export class Panel extends EventEmitter<PanelEvents> {
 
 		connection.once("message", (data) => {
 			clearTimeout(registrationTimeout);
-			
+
 			try {
 				const message = JSON.parse(data.toString()) as NodeRegisterMessage;
 				if (message.type !== "node.register") {
