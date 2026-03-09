@@ -4,19 +4,20 @@ export interface NodeRegisterPayload {
 }
 
 export interface NodeSyncPayload {
-	apps: AppCreatePayload[]
+	apps: AppDeployPayload[]
 }
 
 export interface NodeReadyPayload {
 	apps: Array<{app_id: string, status: AppStatus}>
 }
 
-export type AppCreatePayload =
-	| RegistryAppCreatePayload
-	| DockerfileAppCreatePayload;
+export type AppDeployPayload =
+	| RegistryAppDeployPayload
+	| DockerfileAppDeployPayload;
 
-export interface RegistryAppCreatePayload {
+export interface RegistryAppDeployPayload {
 	app_id: string;
+	deploy_id: string;
 	name: string;
 	image: string;
 	strategy: "registry";
@@ -27,8 +28,9 @@ export interface RegistryAppCreatePayload {
 	env?: Record<string, string>;
 }
 
-export interface DockerfileAppCreatePayload {
+export interface DockerfileAppDeployPayload {
 	app_id: string;
+	deploy_id: string;
 	name: string;
 	repo: string;
 	strategy: "dockerfile";
@@ -39,11 +41,6 @@ export interface DockerfileAppCreatePayload {
 	env?: Record<string, string>;
 	branch?: string;
 	commit?: string;
-}
-
-export interface AppDeployPayload {
-	app_id: string;
-	deploy_id: string;
 }
 
 export type AppChanges = 
@@ -57,10 +54,8 @@ export type AppChanges =
 	| "resources"
 
 export type AppRedeployPayload = {
-	app_id: string;
-	deploy_id: string;
 	changes: AppChanges[];
-} & Partial<AppCreatePayload>
+} & Partial<AppDeployPayload>
 
 export interface AppActionPayload {
 	app_id: string;

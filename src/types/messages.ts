@@ -1,6 +1,5 @@
 import type {
 	AckPayload,
-	AppCreatePayload,
 	AppDeployPayload,
 	AppDestroyPayload,
 	AppRedeployPayload,
@@ -29,11 +28,6 @@ export interface BaseMessage {
 	type: MessageKind;
 	correlation_id: string;
 	payload: unknown;
-}
-
-export interface AppCreateMessage extends BaseMessage {
-	type: "app.create";
-	payload: AppCreatePayload;
 }
 
 export interface AppDeployMessage extends BaseMessage {

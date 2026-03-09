@@ -4,7 +4,6 @@ import type { WebSocket } from "ws";
 
 import type {
 	AppStartMessage,
-	AppCreateMessage,
 	AppDeployMessage,
 	AppStateMessage,
 	BaseMessage,
@@ -17,7 +16,6 @@ import type {
 
 import type {
 	AckPayload,
-	AppCreatePayload,
 	AppDeployPayload,
 	AppDestroyPayload,
 	AppRedeployPayload,
@@ -66,18 +64,6 @@ export class Node extends EventEmitter<NodeEvents> {
 		}
 	}
 
-	public async createApp(payload: AppCreatePayload): Promise<App> {
-		const result = await this.handleAppCreate(payload);
-
-		if (result.status === "rejected") {
-			throw new Error(
-				`Cannot create app with id: ${payload.app_id}, because: ${result.reason}`,
-			);
-		}
-
-		return new App(payload.app_id, this);
-	}
-
 	public async handleNodeSync(payload: NodeSyncPayload): Promise<NodeReadyPayload> {
 		const correlationId = randomUUID();
 
@@ -96,17 +82,16 @@ export class Node extends EventEmitter<NodeEvents> {
 		})
 	}
 
-	public async handleAppCreate(payload: AppCreatePayload): Promise<AckPayload> {
-		const correlationId = randomUUID();
+	public async createApp(payload: AppDeployPayload): Promise<App> {
+		const result = await this.handleAppDeploy(payload);
 
-		return this.request<AckPayload, AppCreateMessage>(
-			{
-				type: "app.create",
-				correlation_id: correlationId,
-				payload,
-			},
-			(message) => message.payload as AckPayload,
-		);
+		if (result.state === "failed") {
+			throw new Error(
+				`Cannot create app with id: ${payload.app_id}, because: ${result.reason}`,
+			);
+		}
+
+		return new App(payload.app_id, this);
 	}
 
 	public async handleAppDeploy(

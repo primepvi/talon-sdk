@@ -20,19 +20,6 @@ export class App extends EventEmitter<AppEvents> {
 		this.node.on("app:state", this.onStateBound);
 	}
 
-	public async deploy(deployId: string): Promise<void> {
-		const payload = await this.node.handleAppDeploy({
-			app_id: this.id,
-			deploy_id: deployId,
-		});
-
-		if (payload.state === "failed") {
-			throw new Error(
-				`Cannot create deploy in application: ${this.id}, because: ${payload.reason}`,
-			);
-		}
-	}
-
 	public async redeploy(
 		payload: Omit<AppRedeployPayload, "app_id">,
 	): Promise<void> {
